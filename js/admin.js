@@ -420,11 +420,24 @@
     return s ? `${s.name} (${s.startText} – ${s.endText})` : '';
   }
 
+  // First option is the intern's default for that day (value ""), the rest are alternatives.
   function cellOptions(c, current) {
-    const def = `<option value="" ${current === '' ? 'selected' : ''}>Default: ${esc(c.defaultValue === 'OFF' ? 'Day off' : c.defaultLabel.split(' (')[0])}</option>`;
-    const scheds = week.plan.schedules.map(s =>
-      `<option value="${esc(s.scheduleId)}" ${current === s.scheduleId ? 'selected' : ''}>${esc(s.name)} (${esc(s.startText)} – ${esc(s.endText)})</option>`).join('');
-    return def + scheds + `<option value="OFF" ${current === 'OFF' ? 'selected' : ''}>Day off</option>`;
+    const defName = c.defaultValue === 'OFF' ? 'Day off' : c.defaultLabel.split(' (')[0];
+    let html = `<option value="" ${current === '' ? 'selected' : ''}>${esc(defName)}</option>`;
+    week.plan.schedules.forEach(s => {
+      if (s.scheduleId === c.defaultValue) return;
+      html += `<option value="${esc(s.scheduleId)}" ${current === s.scheduleId ? 'selected' : ''}>${esc(s.name)}</option>`;
+    });
+    if (c.defaultValue !== 'OFF') html += `<option value="OFF" ${current === 'OFF' ? 'selected' : ''}>Day off</option>`;
+    return html;
+  }
+
+  // Line under each dropdown: the shift time, and whether it's the default.
+  function cellTime(c, current) {
+    const v = current || c.defaultValue;
+    const s = week.plan.schedules.find(x => x.scheduleId === v);
+    const time = v === 'OFF' ? 'No shift' : s ? `${s.startText} – ${s.endText}` : '';
+    return current ? time : time + ' (default)';
   }
 
   function renderWeek() {
@@ -445,10 +458,12 @@
         const v = cellValue(i, c);
         const isDirty = week.edits.has(cellKey(i.internId, c.date));
         if (c.locked) {
-          return `<td class="locked ${c.value ? 'ov' : ''}"><span class="cell-text">${esc(c.effectiveLabel.split(' (')[0])}</span><span class="sub">${esc(c.locked)}</span></td>`;
+          const t = (c.effectiveLabel.match(/\((.*)\)/) || [])[1] || '';
+          return `<td class="locked ${c.value ? 'ov' : ''}"><span class="cell-text">${esc(c.effectiveLabel.split(' (')[0])}</span>${t ? `<span class="sub">${esc(t)}</span>` : ''}<span class="sub lock-tag">${esc(c.locked)}</span></td>`;
         }
         return `<td class="${v ? 'ov' : ''} ${isDirty ? 'dirty' : ''}">
           <select class="cell" data-intern="${esc(i.internId)}" data-date="${esc(c.date)}" aria-label="${esc(i.name)}, ${esc(c.date)}">${cellOptions(c, v)}</select>
+          <span class="sub">${esc(cellTime(c, v))}</span>
           ${c.fromRequest && !isDirty ? '<span class="sub">From approved request</span>' : ''}</td>`;
       }).join('')}
     </tr>`).join('');

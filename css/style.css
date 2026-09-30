@@ -343,3 +343,23 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @media (max-width: 520px) {
   .mysched { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ---------- Weekly grid layout fix ---------- */
+th .sub { display: block; font-weight: 400; }
+.week-grid { table-layout: fixed; min-width: 1180px; }
+.week-grid th.who {
+  width: 230px; min-width: 230px; max-width: 230px;
+  white-space: normal; vertical-align: top; line-height: 1.35;
+  box-shadow: 1px 0 0 var(--line);
+}
+.week-grid th.who strong { display: block; font-size: 14px; }
+.week-grid th.who .sub { margin-top: 2px; }
+.week-grid select.fill { display: block; width: 100%; margin-top: 8px; }
+.week-grid thead th:not(.who) { text-align: left; vertical-align: bottom; }
+.week-grid thead th .sub { font-size: 12px; margin-top: 1px; }
+.week-grid td { vertical-align: top; }
+.week-grid td select { display: block; }
+.week-grid td.locked .cell-text, .week-grid td.locked .sub { display: block; white-space: normal; }
+.week-grid td .sub { margin-top: 4px; }
+.week-grid .lock-tag { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; }
+.week-grid td .sub { font-size: 12px; }
