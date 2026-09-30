@@ -62,7 +62,26 @@
           <div class="stat-note">${hrs(s.remainingHours)} hours to go</div></div>
         <div class="stat ${s.lateCount ? 'warn' : ''}"><div class="stat-value">${s.lateCount}</div><div class="stat-label">Number of lates</div></div>
         <div class="stat ${s.absentCount ? 'bad' : ''}"><div class="stat-value">${s.absentCount}</div><div class="stat-label">Number of absences</div></div>
-      </div>`;
+      </div>
+      ${weeksHTML()}`;
+  }
+
+  function weeksHTML() {
+    if (!data.weeks) return '';
+    return `<section class="panel">
+      <h2>My schedule</h2>
+      <p class="lead">Your shifts this week and next week. <span class="legend ov">Changed</span> days differ from your usual schedule.</p>
+      ${data.weeks.map(w => `
+        <h3 class="week-label">${esc(w.label)}</h3>
+        <div class="mysched">${w.days.map(d => `
+          <div class="day ${d.isToday ? 'today' : ''} ${d.isPast ? 'past' : ''} ${d.off ? 'off' : ''} ${d.changed ? 'ov' : ''}">
+            <div class="day-top"><strong>${esc(d.day)}</strong><span>${esc(d.dateText)}</span></div>
+            <div class="day-name">${esc(d.leave ? 'On leave' : d.name)}</div>
+            <div class="day-time">${esc(d.leave ? '' : d.timeText)}</div>
+            ${d.isToday ? '<span class="day-tag">Today</span>' : d.changed ? '<span class="day-tag">Changed</span>' : ''}
+          </div>`).join('')}
+        </div>`).join('')}
+    </section>`;
   }
 
   function shiftCardHTML(sh) {

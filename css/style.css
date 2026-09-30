@@ -299,3 +299,47 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
   .stats-4 .stat:nth-child(n+3) { border-top: 1px solid var(--line); }
   .two-col.even { grid-template-columns: 1fr; }
 }
+
+/* ---------- Weekly schedule (admin) ---------- */
+.content-wide { max-width: none; }
+.week-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.week-nav, .week-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.week-title { font-size: 18px; margin-left: 6px; }
+.legend { display: inline-block; padding: 0 6px; border-radius: 4px; }
+.legend.ov { background: var(--brand-soft); color: var(--brand-dark); font-weight: 600; }
+.week-wrap { border: 1px solid var(--line); border-radius: var(--radius-sm); }
+.week-grid { min-width: 1100px; }
+.week-grid th, .week-grid td { border-right: 1px solid #f0e6e5; padding: 8px; }
+.week-grid thead th { background: var(--paper); color: var(--text); font-size: 13px; }
+.week-grid thead th.today { background: var(--brand); color: #fff; }
+.week-grid thead th.today .sub { color: #ffe3e1; }
+.week-grid th.who { position: sticky; left: 0; background: #fff; z-index: 1; min-width: 190px; text-align: left; font-weight: 400; color: var(--text); font-size: 14px; }
+.week-grid thead th.who { background: var(--paper); font-weight: 600; }
+.week-grid select { width: 100%; min-width: 118px; border: 1px solid var(--line); border-radius: 6px; padding: 6px; background: #fff; font-size: 13px; }
+.week-grid select.fill { margin-top: 6px; font-size: 12px; color: var(--muted); }
+.week-grid td.ov { background: var(--brand-soft); }
+.week-grid td.ov select { border-color: var(--accent-soft); font-weight: 600; }
+.week-grid td.dirty { box-shadow: inset 0 0 0 2px var(--brand); }
+.week-grid td.locked { color: var(--muted); font-size: 13px; background: #faf7f7; }
+.week-grid td.locked.ov { background: #f6ecec; }
+.cell-text { font-weight: 600; color: var(--text); }
+
+/* ---------- My schedule (intern) ---------- */
+.week-label { font-size: 14px; color: var(--muted); margin: 14px 0 8px; }
+.mysched { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.day { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px; position: relative; min-height: 92px; background: #fff; }
+.day-top { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.day-top strong { color: var(--text); font-size: 13px; }
+.day-name { font-weight: 700; margin-top: 8px; font-size: 14px; }
+.day-time { font-size: 12px; color: var(--muted); }
+.day.off .day-name { color: var(--muted); font-weight: 600; }
+.day.ov { background: var(--brand-soft); border-color: var(--accent-soft); }
+.day.today { border: 2px solid var(--brand); }
+.day.past { opacity: .5; }
+.day-tag { position: absolute; bottom: 8px; right: 8px; font-size: 10px; font-weight: 700; color: var(--brand-dark); text-transform: uppercase; letter-spacing: .4px; }
+@media (max-width: 900px) {
+  .mysched { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 520px) {
+  .mysched { grid-template-columns: repeat(2, 1fr); }
+}

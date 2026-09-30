@@ -28,6 +28,7 @@
       $('#sec-' + k).innerHTML = sections[k]();
     });
     bind();
+    if (!only && week.plan && !week.edits.size && current !== 'weekly') week.plan = null; // reload next time it opens
     if (current === 'log' && (!only || only.includes('log'))) loadLog();
   }
 
@@ -396,11 +397,184 @@
     });
   }
 
+
+  /* ---------------- Weekly schedule ---------------- */
+  const week = { plan: null, edits: new Map(), loading: false };
+  const cellKey = (internId, date) => internId + '|' + date;
+
+  async function loadWeek(weekStart, fresh) {
+    week.loading = true;
+    try {
+      week.plan = A.requireShape(fresh || await A.api('weekPlan', { weekStart: weekStart || '' }),
+        ['weekStart', 'days', 'interns', 'schedules'], 'weekPlan');
+      week.edits.clear();
+      renderWeek();
+    } finally { week.loading = false; }
+  }
+
+  const cellValue = (i, c) => week.edits.has(cellKey(i.internId, c.date)) ? week.edits.get(cellKey(i.internId, c.date)) : c.value;
+
+  function valueText(v) {
+    if (v === 'OFF') return 'Day off';
+    const s = week.plan.schedules.find(x => x.scheduleId === v);
+    return s ? `${s.name} (${s.startText} – ${s.endText})` : '';
+  }
+
+  function cellOptions(c, current) {
+    const def = `<option value="" ${current === '' ? 'selected' : ''}>Default: ${esc(c.defaultValue === 'OFF' ? 'Day off' : c.defaultLabel.split(' (')[0])}</option>`;
+    const scheds = week.plan.schedules.map(s =>
+      `<option value="${esc(s.scheduleId)}" ${current === s.scheduleId ? 'selected' : ''}>${esc(s.name)} (${esc(s.startText)} – ${esc(s.endText)})</option>`).join('');
+    return def + scheds + `<option value="OFF" ${current === 'OFF' ? 'selected' : ''}>Day off</option>`;
+  }
+
+  function renderWeek() {
+    const el = $('#sec-weekly');
+    const p = week.plan;
+    if (!p) { el.innerHTML = '<div class="panel"><p class="empty">Loading…</p></div>'; return; }
+    const dirty = week.edits.size;
+    const isThisWeek = p.days.some(d => d.isToday);
+
+    const head = p.days.map(d => `<th class="${d.isToday ? 'today' : ''}">${esc(d.day)}<span class="sub">${esc(d.dateText)}${d.isToday ? ', today' : ''}</span></th>`).join('');
+    const fillOpts = `<option value="">Fill week with…</option><option value="__default">Default schedule</option>` +
+      p.schedules.map(s => `<option value="${esc(s.scheduleId)}">${esc(s.name)}</option>`).join('') + `<option value="OFF">Day off</option>`;
+
+    const rows = p.interns.map(i => `<tr>
+      <th class="who"><strong>${esc(i.name)}</strong><span class="sub">Default: ${esc(i.defaultText)}</span>
+        <select class="fill" data-fill="${esc(i.internId)}" aria-label="Fill ${esc(i.name)}'s week">${fillOpts}</select></th>
+      ${i.cells.map(c => {
+        const v = cellValue(i, c);
+        const isDirty = week.edits.has(cellKey(i.internId, c.date));
+        if (c.locked) {
+          return `<td class="locked ${c.value ? 'ov' : ''}"><span class="cell-text">${esc(c.effectiveLabel.split(' (')[0])}</span><span class="sub">${esc(c.locked)}</span></td>`;
+        }
+        return `<td class="${v ? 'ov' : ''} ${isDirty ? 'dirty' : ''}">
+          <select class="cell" data-intern="${esc(i.internId)}" data-date="${esc(c.date)}" aria-label="${esc(i.name)}, ${esc(c.date)}">${cellOptions(c, v)}</select>
+          ${c.fromRequest && !isDirty ? '<span class="sub">From approved request</span>' : ''}</td>`;
+      }).join('')}
+    </tr>`).join('');
+
+    el.innerHTML = `
+      <section class="panel">
+        <div class="week-bar">
+          <div class="week-nav">
+            <button class="btn btn-ghost btn-sm" data-week="-7" aria-label="Previous week">◀ Prev</button>
+            <button class="btn btn-ghost btn-sm" data-week="0" ${isThisWeek ? 'disabled' : ''}>This week</button>
+            <button class="btn btn-ghost btn-sm" data-week="7" aria-label="Next week">Next ▶</button>
+            <h2 class="week-title">${esc(p.weekText)}</h2>
+          </div>
+          <div class="week-actions">
+            <button class="btn btn-ghost btn-sm" id="week-copy">Copy previous week</button>
+            <button class="btn btn-ghost btn-sm" id="week-reset">Reset week to default</button>
+            ${dirty ? '<button class="btn btn-ghost btn-sm" id="week-discard">Discard</button>' : ''}
+            <button class="btn btn-primary btn-sm" id="week-save" ${dirty ? '' : 'disabled'}>Save changes${dirty ? ' (' + dirty + ')' : ''}</button>
+          </div>
+        </div>
+        <p class="lead">Pick a schedule for each day. <span class="legend ov">Tinted</span> days differ from the intern's default schedule.
+          Days with attendance, and past days, are locked.</p>
+        ${p.interns.length ? `<div class="table-wrap week-wrap"><table class="week-grid">
+          <thead><tr><th class="who">Intern</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`
+          : '<p class="empty">No active interns yet.</p>'}
+      </section>`;
+    bindWeek();
+  }
+
+  function setEdit(i, c, value) {
+    if (c.locked) return;
+    const k = cellKey(i.internId, c.date);
+    if (value === c.value) week.edits.delete(k); else week.edits.set(k, value);
+  }
+
+  function guardUnsaved(next) {
+    if (!week.edits.size) return next();
+    A.modal({
+      title: 'Discard unsaved changes?',
+      body: `<p>You have ${week.edits.size} unsaved change${week.edits.size === 1 ? '' : 's'} this week.</p>`,
+      actions: [{ label: 'Keep editing' }, { label: 'Discard', kind: 'btn-danger', onClick: async () => { A.closeModal(); week.edits.clear(); await next(); } }]
+    });
+  }
+
+  function shiftWeek(days) {
+    const d = new Date(week.plan.weekStart + 'T12:00:00Z');
+    d.setUTCDate(d.getUTCDate() + days);
+    return d.toISOString().slice(0, 10);
+  }
+
+  function bindWeek() {
+    const p = week.plan;
+    $$('[data-week]').forEach(b => b.onclick = () => guardUnsaved(async () => {
+      const delta = Number(b.dataset.week);
+      await A.run(b, () => loadWeek(delta === 0 ? '' : shiftWeek(delta)), '…').catch(() => {});
+    }));
+
+    $$('select.cell').forEach(sel => sel.onchange = () => {
+      const i = p.interns.find(x => x.internId === sel.dataset.intern);
+      setEdit(i, i.cells.find(c => c.date === sel.dataset.date), sel.value);
+      renderWeek();
+    });
+
+    $$('select.fill').forEach(sel => sel.onchange = () => {
+      const i = p.interns.find(x => x.internId === sel.dataset.fill);
+      i.cells.forEach(c => setEdit(i, c, sel.value === '__default' ? '' : (sel.value === c.defaultValue ? '' : sel.value)));
+      renderWeek();
+    });
+
+    const reset = $('#week-reset');
+    if (reset) reset.onclick = () => {
+      p.interns.forEach(i => i.cells.forEach(c => setEdit(i, c, '')));
+      renderWeek();
+      A.toast('All days set back to default. Save to apply.');
+    };
+
+    const copy = $('#week-copy');
+    if (copy) copy.onclick = async () => {
+      try {
+        const prev = await A.run(copy, () => A.api('weekPlan', { weekStart: shiftWeek(-7) }), 'Copying…');
+        let n = 0;
+        p.interns.forEach(i => {
+          const pi = prev.interns.find(x => x.internId === i.internId);
+          if (!pi) return;
+          i.cells.forEach((c, idx) => {
+            if (c.locked) return;
+            const pc = pi.cells[idx];
+            const effective = pc.value || pc.defaultValue;
+            const next = effective === c.defaultValue ? '' : effective;
+            if (next !== cellValue(i, c)) { setEdit(i, c, next); n++; }
+          });
+        });
+        renderWeek();
+        A.toast(n ? `Copied last week's pattern (${n} day${n === 1 ? '' : 's'} changed). Save to apply.` : 'This week already matches last week.');
+      } catch (e) { /* toast shown */ }
+    };
+
+    const discard = $('#week-discard');
+    if (discard) discard.onclick = () => { week.edits.clear(); renderWeek(); };
+
+    const save = $('#week-save');
+    if (save) save.onclick = async () => {
+      const changes = Array.from(week.edits.entries()).map(([k, value]) => {
+        const [internId, date] = k.split('|');
+        return { internId, date, value };
+      });
+      try {
+        const fresh = await A.run(save, () => A.api('saveWeekPlan', { weekStart: p.weekStart, changes }), 'Saving…');
+        await loadWeek(null, fresh);
+        A.toast('Weekly schedule saved.', 'success');
+        load(null, ['monitoring']).catch(() => {});
+      } catch (e) { /* toast shown */ }
+    };
+  }
+
+  window.addEventListener('beforeunload', (e) => { if (week.edits.size) { e.preventDefault(); e.returnValue = ''; } });
+
   /* ---------------- Start ---------------- */
   const showPage = A.initTabs((name) => {
     current = name;
     if (name !== 'add') lastAdded = null;
     if (data && name === 'log') loadLog();
+    if (name === 'weekly' && !week.plan && !week.loading) {
+      renderWeek();
+      loadWeek().catch(e => { $('#sec-weekly').innerHTML = `<div class="panel"><p class="form-error">${esc(e.message)}</p></div>`; });
+    }
   });
 
   $('#refresh').addEventListener('click', (e) => A.run(e.currentTarget, () => load(), 'Refreshing…').catch(() => {}));
