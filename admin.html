@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#c20f06">
+  <title>Admin Dashboard · Intern Timekeeping</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="img/logo.png">
+</head>
+<body>
+  <div class="app app-admin">
+    <aside class="sidebar">
+      <img src="img/logo.png" alt="" class="side-logo" onerror="this.hidden=true">
+      <div class="side-clock">
+        <div class="side-day" data-clock-weekday></div>
+        <div class="side-date" data-clock-date></div>
+        <div class="side-time" data-clock-time></div>
+      </div>
+      <nav class="side-nav" aria-label="Admin pages">
+        <button data-page="monitoring">Monitoring</button>
+        <button data-page="add">Add intern</button>
+        <button data-page="schedules">Schedule types</button>
+        <button data-page="requests">Requests <span class="count" id="req-count" hidden></span></button>
+        <button data-page="log">Attendance log</button>
+      </nav>
+      <button class="btn btn-side" data-logout>Log out</button>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div>
+          <div class="hello">Admin dashboard</div>
+          <div class="muted small" id="admin-meta"></div>
+        </div>
+        <button class="btn btn-ghost" id="refresh">Refresh</button>
+      </header>
+
+      <section class="content" data-section="monitoring" id="sec-monitoring"></section>
+      <section class="content" data-section="add" id="sec-add" hidden></section>
+      <section class="content" data-section="schedules" id="sec-schedules" hidden></section>
+      <section class="content" data-section="requests" id="sec-requests" hidden></section>
+      <section class="content" data-section="log" id="sec-log" hidden></section>
+    </div>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-root" aria-live="polite"></div>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

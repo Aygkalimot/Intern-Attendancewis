@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#c20f06">
+  <title>Log in · Intern Timekeeping</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="img/logo.png">
+</head>
+<body>
+  <main class="login">
+    <section class="login-card">
+      <div class="login-head">
+        <img src="img/logo.png" alt="Company logo" class="login-logo" onerror="this.hidden=true">
+        <div class="login-clock">
+          <div class="login-time" data-clock-time>--:--</div>
+          <div class="login-date" data-clock-date></div>
+        </div>
+        <h1 class="login-title">Intern Timekeeping</h1>
+        <p class="login-sub">Log in to time in, track your hours and file requests.</p>
+      </div>
+      <form id="login-form" autocomplete="on" novalidate>
+        <label class="field">
+          <span>Username</span>
+          <input id="login-username" name="username" autocomplete="username" required maxlength="30">
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input id="login-password" name="password" type="password" autocomplete="current-password" required maxlength="100">
+        </label>
+        <p id="login-error" class="form-error" role="alert"></p>
+        <button class="btn btn-primary btn-block" type="submit" id="login-btn">Log in</button>
+      </form>
+      <p class="conn" id="conn" aria-live="polite"><span class="conn-dot"></span><span id="conn-text">Checking connection…</span></p>
+    </section>
+  </main>
+  <div id="modal-root"></div>
+  <div id="toast-root" aria-live="polite"></div>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>

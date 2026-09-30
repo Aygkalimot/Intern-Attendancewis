@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#c20f06">
+  <title>Intern Dashboard · Intern Timekeeping</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="img/logo.png">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <img src="img/logo.png" alt="" class="side-logo" onerror="this.hidden=true">
+      <div class="side-clock">
+        <div class="side-day" data-clock-weekday></div>
+        <div class="side-date" data-clock-date></div>
+        <div class="side-time" data-clock-time></div>
+      </div>
+      <div class="roster">
+        <h2 class="roster-title">Expected on duty today</h2>
+        <ul id="roster" class="roster-list"><li class="roster-empty">Loading…</li></ul>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <div>
+          <div class="hello" id="intern-name">Loading…</div>
+          <div class="muted small" id="intern-meta"></div>
+        </div>
+        <nav class="tabs" aria-label="Intern pages">
+          <button data-page="dashboard">Dashboard</button>
+          <button data-page="absence">File absence</button>
+          <button data-page="schedule">Change schedule</button>
+          <button data-page="missed">Missed logs</button>
+        </nav>
+        <button class="btn btn-ghost" data-logout>Log out</button>
+      </header>
+
+      <section class="content" data-section="dashboard" id="sec-dashboard"></section>
+      <section class="content" data-section="absence" id="sec-absence" hidden></section>
+      <section class="content" data-section="schedule" id="sec-schedule" hidden></section>
+      <section class="content" data-section="missed" id="sec-missed" hidden></section>
+    </div>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-root" aria-live="polite"></div>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/intern.js"></script>
+</body>
+</html>
